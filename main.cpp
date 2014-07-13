@@ -22,156 +22,139 @@
 #include "Inspector.h"
 using namespace std;
 
-
 int main()
 {
     Model model;
-    View plot1;
-    string mystr;
-    char command='y';
-    int id=0;
-    char idnew;
-    double one, two,three;
-    string file;
+    View view;
+    char command, idnew, id;
+    string mystr, file;
+    double x, y, z;
+    bool input2=true;
     
-    while (command !='q'){
+    while (command != 'q' ){
         model.show_status();
-        model.display(plot1);
-        command='x';
-        while (command !='g' && command != 'r'){
-            bool input2=true;
-            cout << "Enter command: ";
-            getline (cin,mystr);
-            stringstream stream(mystr);
-            stream>> command;
-            if (command=='m'||command=='a'||command=='w'){
-                stream >> id >> one >> two;
-                try {
-                    if(!(id)){
-                        input2=false;
-                        throw Invalid_Input("Was expecting an integer");
-                    }
+        model.display(view);
+        command = 'E';
+        
+        while (command !='r' && command != 'g'){
+            try{
+                cout << "Enter command: ";
+                getline (cin, mystr);
+                stringstream stream(mystr);
+                stream >> command;
+                if (command != 'm' && command != 'w' && command != 's' && command != 'g' && command != 'r' && command != 'q' && command != 'a' && command != 'l' && command != 'n' && command != 'S' && command != 'R' && command != 'i'){
+                    cin.clear();
+                    throw Invalid_Input ("ERROR: Please enter a valid command!");
+                    
                 }
-                catch (Invalid_Input& except){
-                    cout << "Invalid input - " << except.msg_ptr << endl;}
-            }
-            else if (command=='S' || command=='R'){
-                stream>>file;
-            }
-            else if (command=='n'){
-                stream >> idnew >> one >> two >> three;
-                try {
-                    if (idnew!='g' && idnew!='t' && idnew!='m' && idnew!='s' && idnew!='i'){
-                        input2=false;
-                        throw Invalid_Input("Was expecting 'g', 't', 'm', 'i', or 's'");
-                    }
-                }
-                catch (Invalid_Input& except){
-                    cout << "Invalid input - " << except.msg_ptr << endl;}
-            }
-            else if (command=='i'){
-                stream >> id;
-                try {
-                    if (!(id)){
-                        input2=false;
-                        throw Invalid_Input("Was expecting an integer");
-                    }
-                }
-                catch (Invalid_Input& except){
-                    cout<< "Invalid input-" << except.msg_ptr << endl;
-                }
-            }
-            
-            try
-            {
-                if (command=='m'&&input2==true){
-                    do_move_command(model, id, one, two);
-                    model.display(plot1);
-                }
-                else if (command=='w'&& input2==true){
-                    start_mining(model, id, one, two);
-                    model.display(plot1);
-                }
-                else if (command=='i' && input2==true){
-                    Person* ptr=model.get_Person_ptr(id);
-                    try{
-                        if (ptr==0)
-                            throw Invalid_Input("That id does not exist");
-                        else{
-                            inspect_command( model, id);
-                            model.display(plot1);
-                        }}
-                    catch (Invalid_Input& except){
-                        cout << "Invalid input - " << except.msg_ptr << endl;
-                    }}
-                else if (command=='s'){
-                    stop_command(model, idnew);
-                    model.display(plot1);
-                }
-                else if (command=='l')
-                    list_command(model);
-                else if (command=='a' && input2==true){
-                    attack_command(model, id, one);
-                    model.display(plot1);
-                }
-                else if (command=='g')
-                    go_command(model);
-                else if (command=='r')
-                    run_command(model);
-                
-                else if (command=='q') {
-                    cout << "Terminating program." << endl;
-                    break;
-                }
-                else if (command=='S'){
-                    save_command(model, file);
-                    cout << "Epic game saved!"<<endl;
-                    model.display(plot1);
-                }
-                else if (command=='R'){
-                    restore_command(model, file);
-                    model.display(plot1);
-                }
-                else if (command=='n' && input2==true){
-                    if (idnew=='g'){
-                        Gold_Mine * ptr=model.get_Gold_Mine_ptr(one);
-                        if (ptr!=0)
-                            throw Invalid_Input("that id already exists");
-                        
-                        else if (ptr==0){
-                            model.handle_new_command('g',one,two,three);
-                            model.display(plot1);
+                switch (command){
+                    case 'm': //move
+                        stream >> id >> x >> y;
+                        if (id){
+                            do_move_command(model, id, x, y);
+                            model.display(view);
+                        } else {
+                            throw Invalid_Input("Was expecting an integer");
                         }
-                    }
-                    else if (idnew=='t'){
-                        Town_Hall* ptr=model.get_Town_Hall_ptr(one);
-                        
-                        if (ptr!=0)
-                             throw Invalid_Input("that id already exists");
-                        
-                        else if (ptr==0){
-                            model.handle_new_command('t',one,two,three);
-                            model.display(plot1);
+                        break;
+                    case 'w': //work (i.e. mine)
+                        stream >> id >> x >> y;
+                        if (id){
+                            start_mining(model, id, x, y);
+                            model.display(view);
+                        } else {
+                            throw Invalid_Input("Was expecting an integer");
                         }
-                    }
-                    else if (idnew=='s'||idnew=='m'||idnew=='i'){
-                        Person* ptr=model.get_Person_ptr(one);
-                      
-                        if (ptr!=0)
-                             throw Invalid_Input("that id already exists");
-                        else if (ptr==0){
-                            model.handle_new_command(idnew,one,two,three);
-                            model.display(plot1);
+                        break;
+                    case 's': //stop
+                        stop_command(model, idnew);
+                        model.display(view);
+                        break;
+                    case 'r': //move forward 5 ticks or until next event
+                        run_command(model);
+                        break;
+                    case 'g': //move forward 1 time tick
+                        go_command(model);
+                        break;
+                    case 'l':
+                        list_command(model); //show all status'
+                        break;
+                    case'a': //attack target
+                        stream >> id >> x;
+                        if (id){
+                            attack_command(model, id, x);
+                            model.display(view);
+                        } else {
+                            throw Invalid_Input("Was expecting an integer");
                         }
-                      
+                        break;
+                    case 'i': //inspect
+                        int id;
+                        stream >> id;
+                        if (id){
+                            Person* ptr=model.get_Person_ptr(id);
+                            if (ptr==0){
+                                throw Invalid_Input("That id does not exist");
+                            }else{
+                                inspect_command( model, id);
+                                model.display(view);
+                            }
+                        } else {
+                            throw Invalid_Input("Was expecting an integer");
+                        }
+                        break;
+                    case 'S':{ //save game
+                        cin >>file;
+                        save_command(model, file);
+                        cout << "Epic game saved!"<<endl;
+                        model.display(view);
+                        break;
                     }
-                    else
-                        throw Invalid_Input(&command);
-                }}
-            catch (Invalid_Input& except){
-                cout<< "Invalid input-" << except.msg_ptr << endl;
+                    case 'R':{ //restore game
+                        cin >>file;
+                        restore_command(model, file);
+                        model.display(view);
+                        break;
+                    }
+                    case 'n': //create new object
+                        cin >> idnew >> x >> y >> z;
+                        if (idnew!='g' && idnew!='t' && idnew!='m' && idnew!='s' && idnew!='i')
+                            throw Invalid_Input("Was expecting 'g', 't', 'm', 'i', or 's'");
+                        if (id=='g'){
+                            Gold_Mine * ptr=model.get_Gold_Mine_ptr(x);
+                            if (ptr!=0){
+                                throw Invalid_Input("that id already exists");
+                            } else {
+                                model.handle_new_command('g',x,y,z);
+                            }
+                            model.display(view);
+                        } else if (id=='t'){
+                            Town_Hall* ptr=model.get_Town_Hall_ptr(x);
+                            if (ptr!=0){
+                                throw Invalid_Input("that id already exists");
+                            } else {
+                                model.handle_new_command('t', x, y, z);
+                                model.display(view);
+                            }
+                        } else if (id=='s'||id=='m'||id=='i'){
+                            Person* ptr=model.get_Person_ptr(x);
+                            if (ptr!=0){
+                                throw Invalid_Input("that id already exists");
+                            } else {
+                                model.handle_new_command(id,x,y,z);
+                                model.display(view);
+                            }
+                        } else {
+                            throw Invalid_Input(&command);
+                        }
+                        break;
+                    case 'q': //quit
+                        cout << "Terminating program." << endl;
+                        exit(0);
+                }
+            } catch (Invalid_Input& except){
+                cout << "Invalid input - " << except.msg_ptr << endl;
             }
         }
-    }}
-
-
+    }
+}
